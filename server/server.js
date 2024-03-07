@@ -1,19 +1,18 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
-require("dotenv").config();
-// const postData = require("./postData.json");
 const Post = require("./models/posts.js");
 const fs  = require("fs")
 const postsData = JSON.parse(fs.readFileSync('./postData.json', 'utf8')); 
+const cookieParser = require('cookie-parser')
+require("dotenv").config();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-
-
 app.use(cors());
 app.use(express.json());
+app.use(cookieParser());
 
 (async () => {
   try {
