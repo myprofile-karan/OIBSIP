@@ -22,9 +22,14 @@
   ## Frontend Implementation
 
 - **Signup Screen:**
-  - Include fields for username/email, password, and optional fields.
+  - Include fields for username/email, password, and confirm password.
   - Implement validation for required fields and email format using React state management and validation libraries.
   - Include terms and conditions checkbox.
+  - Display clear error and success messages.
+
+- **Login Screen:**
+  - Include fields for username/email, password.
+  - Implement validation for required fields and email format using React state management and validation libraries.
   - Display clear error and success messages.
   - Redirect to the post list screen after successful signup using React Router.
 
