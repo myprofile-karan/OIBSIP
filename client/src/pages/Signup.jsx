@@ -1,21 +1,21 @@
 import { useState } from "react";
 import { z, ZodError } from "zod";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 
 const SignupSchema = z.object({
-  email: z.string().email({ message: "Please enter a valid email address" }),
+  username: z
+    .string()
+    .min(3, { message: "Username must be at least 3 characters long" }),
   password: z
     .string()
     .min(4, { message: "Please enter a password with at least 4 digits" }),
 });
 
 const Signup = () => {
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [termsAccepted, setTermsAccepted] = useState(false);
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [loading, setLoading] = useState(false);
   const [signupError, setSignupError] = useState(null);
@@ -27,25 +27,10 @@ const Signup = () => {
     setLoading(true);
 
     try {
-      SignupSchema.parse({ email, password });
+      SignupSchema.parse({ username, password });
 
-      if (!termsAccepted) {
-        setValidationErrors({
-          checkbox: "Please accept the Terms and Conditions",
-        });
-        setLoading(false);
-        return;
-      }
-      if (password !== confirmPassword) {
-        setValidationErrors({
-          confirmPassword: "Password does not match",
-        });
-        setLoading(false);
-        return;
-      }
-
-      const response = await axios.post("http://127.0.0.1:3001/signup", {
-        email,
+      const response = await axios.post("http://localhost:3001/signup", {
+        username,
         password,
       });
       console.log(response);
@@ -54,7 +39,7 @@ const Signup = () => {
       toast.success("signup successful");
 
       setValidationErrors({});
-      setEmail("");
+      setUsername("");
       setPassword("");
       setTermsAccepted(false);
       setLoading(false);
@@ -62,10 +47,10 @@ const Signup = () => {
       if (error instanceof ZodError) {
         const errors = {};
         error.errors.forEach((err) => {
-          errors[err.path[0]] = err.message; 
+          errors[err.path[0]] = err.message;
         });
         setValidationErrors(errors);
-      } else if (error.response) {    
+      } else if (error.response) {
         setSignupError(
           `Server error: ${error.response.status} - ${error.response.data.message}`
         );
@@ -90,25 +75,25 @@ const Signup = () => {
         <div className="grid gap-4 md:mt-8 mt-4">
           <div className="grid grid-cols-1 items-center gap-2 md:gap-4">
             <label
-              htmlFor="email"
+              htmlFor="username"
               className="text-gray-600 text-sm md:text-lg"
             >
-              Email:
+              Username:
             </label>
             <input
-              id="email"
-              type="email"
-              placeholder="Enter your email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              id="username"
+              type="text"
+              placeholder="Enter your username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
               className={`md:p-3 p-2 border rounded-md focus:outline-none focus:ring focus:border-blue-300 ${
-                validationErrors.email && "border-red-500"
+                validationErrors.username && "border-red-500"
               }`}
               required
             />
-            {validationErrors.email && (
+            {validationErrors.username && (
               <p className="text-red-500 text-xs">
-                {validationErrors.email}
+                {validationErrors.username}
               </p>
             )}
           </div>
@@ -131,59 +116,27 @@ const Signup = () => {
               }`}
               required
             />
-               <button
-                type="button"
-                className="absolute right-3 top-5 text-sm"
-                onClick={() => setPasswordVisible(!passwordVisible)}
-              >
-                {passwordVisible ? "Hide" : "Show"}
-              </button>
+            <button
+              type="button"
+              className="absolute right-3 md:top-5 top-0 text-sm"
+              onClick={() => setPasswordVisible(!passwordVisible)}
+            >
+              {passwordVisible ? "Hide" : "Show"}
+            </button>
             {validationErrors.password && (
               <p className="text-red-500 text-xs">
                 {validationErrors.password}
               </p>
             )}
           </div>
-          <div className="relative grid grid-cols-1 items-center gap-2 md:gap-4">
-            <label
-              htmlFor="confirmPassword"
-              className="text-gray-600 text-sm md:text-lg"
-            >
-              Confirm Password:
-            </label>
-            <input
-              id="confirmPassword"
-              type={passwordVisible ? "text" : "password"}
-              placeholder="Enter your password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              className="md:p-3 p-2 border rounded-md focus:outline-none focus:ring focus:border-blue-300"
-              required
-            />
-               <button
-                type="button"
-                className="absolute right-3 top-5 text-sm"
-                onClick={() => setPasswordVisible(!passwordVisible)}
-              >
-                {passwordVisible ? "Hide" : "Show"}
-              </button>
-            {validationErrors.confirmPassword && (
-              <p className="text-red-500 text-xs">
-                {validationErrors.confirmPassword}
-              </p>
-            )}
+          <div className="navigate">
+            <span>
+              Already a user?{" "}
+              <Link to="/login" className="text-blue-600">
+                Login here
+              </Link>
+            </span>
           </div>
-          <div className="flex gap-2 items-center">
-            <input
-              type="checkbox"
-              checked={termsAccepted}
-              onChange={() => setTermsAccepted(!termsAccepted)}
-            />
-            <span className="text-sm">Accept all Terms and Conditions</span>
-          </div>
-          {validationErrors.checkbox && (
-            <p className="text-red-500 text-xs">{validationErrors.checkbox}</p>
-          )}
         </div>
         <button
           onClick={handleSignup}

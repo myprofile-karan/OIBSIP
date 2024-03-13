@@ -4,6 +4,7 @@ import Login from "./pages/Login";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Posts from "./pages/Posts";
 import { Toaster } from "react-hot-toast";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 const App = () => {
   return (
@@ -13,7 +14,7 @@ const App = () => {
           <Route path="/" element={<Navigate replace to="/signup" />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/login" element={<Login />} />
-          <Route path="/posts" element={<Posts />} />
+          <Route path="/posts" element={<ProtectedRoute Component={Posts} />} />
         </Routes>
       </BrowserRouter>
 

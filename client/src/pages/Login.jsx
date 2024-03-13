@@ -1,18 +1,20 @@
 import { useState } from "react";
 import { z, ZodError } from "zod";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 
 const loginSchema = z.object({
-  email: z.string().email({ message: "Please enter a valid email address" }),
+  username: z
+    .string()
+    .min(3, { message: "Username must be at least 3 characters long" }),
   password: z
     .string()
     .min(4, { message: "Please enter a password with at least 4 digits" }),
 });
 
 const Login = () => {
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -25,19 +27,29 @@ const Login = () => {
     setLoading(true);
 
     try {
-      loginSchema.parse({ email, password });
+      loginSchema.parse({ username, password });
 
-      const response = await axios.post("http://127.0.0.1:3001/login", {
-        email,
-        password,
-      });
-      console.log(response);
+      const existingUserResponse = await axios.get(`http://localhost:3001/check-user/${username}`);
 
-      await navigate("/posts");
-      toast.success(`welcome ${email}`);
-
+      if (!existingUserResponse.data.exists) {
+        // If user does not exist, show alert or toast
+        toast.error(`user does not exist! Please signup first.`);
+      } else {
+        const response = await axios.post("http://localhost:3001/login", {
+          username,
+          password,
+        });
+        console.log(response)
+        if(!response.data.token){
+          return navigate("/login");
+        }
+        localStorage.setItem("token", JSON.stringify(response.data.token))
+        await navigate("/posts")
+        toast.success(`Welcome ${username}. Login successful!`);
+      }
+      
       setValidationErrors({});
-      setEmail("");
+      setUsername("");
       setPassword("");
       setLoading(false);
     } catch (error) {
@@ -72,29 +84,28 @@ const Login = () => {
         <div className="grid gap-4 md:mt-8 mt-4">
           <div className="grid grid-cols-1 items-center gap-2 md:gap-4">
             <label
-              htmlFor="email"
+              htmlFor="username"
               className="text-gray-600 text-sm md:text-lg"
             >
-              Email:
+              Username:
             </label>
             <input
-              id="email"
-              type="email"
-              placeholder="Enter your email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              id="username"
+              type="text"
+              placeholder="Enter your username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
               className={`md:p-3 p-2 border rounded-md focus:outline-none focus:ring focus:border-blue-300 ${
-                validationErrors.email && "border-red-500"
+                validationErrors.username && "border-red-500"
               }`}
               required
             />
-            {validationErrors.email && (
+            {validationErrors.username && (
               <p className="text-red-500 text-xs">
-                {validationErrors.email}
+                {validationErrors.username}
               </p>
             )}
           </div>
-
           <div className="relative grid grid-cols-1 items-center gap-2 md:gap-4">
             <label
               htmlFor="password"
@@ -113,18 +124,26 @@ const Login = () => {
               }`}
               required
             />
-               <button
-                type="button"
-                className="absolute right-3 top-5 text-sm"
-                onClick={() => setPasswordVisible(!passwordVisible)}
-              >
-                {passwordVisible ? "Hide" : "Show"}
-              </button>
+            <button
+              type="button"
+              className="absolute right-3 md:top-5 top-0 text-sm"
+              onClick={() => setPasswordVisible(!passwordVisible)}
+            >
+              {passwordVisible ? "Hide" : "Show"}
+            </button>
             {validationErrors.password && (
               <p className="text-red-500 text-xs">
                 {validationErrors.password}
               </p>
             )}
+          </div>
+          <div className="navigate">
+            <span>
+              Not a user?{" "}
+              <Link to="/signup" className="text-blue-600">
+                Signup here
+              </Link>
+            </span>
           </div>
         </div>
         <button

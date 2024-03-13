@@ -3,6 +3,6 @@ const { Router } = require("express");
 
 const router = Router()
 
-router.route("/posts").get(getPosts)
+router.route("/posts").get( getPosts)  
 
 module.exports = router;
